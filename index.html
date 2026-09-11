@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Human Bingo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Work+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg: #1c332c;
+      --bg-dark: #152720;
+      --paper: #f6efdd;
+      --ink: #241d14;
+      --marigold: #e8a33d;
+      --poppy: #c1432d;
+      --line: #8c7b63;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 20% 10%, var(--bg-dark), transparent 60%),
+        var(--bg);
+      color: var(--ink);
+      font-family: 'Work Sans', sans-serif;
+      display: flex;
+      justify-content: center;
+      padding: 32px 16px 64px;
+    }
+
+    .sheet {
+      width: 100%;
+      max-width: 720px;
+    }
+
+    header {
+      text-align: center;
+      color: var(--paper);
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      font-family: 'Anton', sans-serif;
+      font-weight: 400;
+      font-size: clamp(2.2rem, 7vw, 3.4rem);
+      letter-spacing: 0.5px;
+      margin: 0 0 8px;
+      color: var(--marigold);
+      text-shadow: 2px 2px 0 var(--bg-dark);
+    }
+
+    .sub {
+      font-size: 0.98rem;
+      line-height: 1.5;
+      max-width: 46ch;
+      margin: 0 auto;
+      color: #e7dfca;
+    }
+
+    .card {
+      background: var(--paper);
+      border: 2px solid var(--line);
+      border-radius: 6px;
+      padding: 14px;
+      box-shadow: 0 10px 0 -4px var(--bg-dark), 0 14px 24px rgba(0, 0, 0, 0.35);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+    }
+
+    .cell {
+      position: relative;
+      background: #fffdf6;
+      border: 1px dashed var(--line);
+      border-radius: 3px;
+      padding: 6px 5px 7px;
+      min-height: 96px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: background 0.25s ease, border-color 0.25s ease;
+    }
+
+    .cell .prompt {
+      font-size: clamp(0.62rem, 2.1vw, 0.74rem);
+      line-height: 1.25;
+      font-weight: 600;
+      color: var(--ink);
+      display: block;
+    }
+
+    .cell input {
+      margin-top: 6px;
+      width: 100%;
+      border: none;
+      border-bottom: 1.5px solid var(--poppy);
+      background: transparent;
+      font-family: 'Work Sans', sans-serif;
+      font-size: clamp(0.68rem, 2.3vw, 0.8rem);
+      font-weight: 500;
+      color: var(--ink);
+      padding: 2px 1px;
+    }
+
+    .cell input::placeholder {
+      color: #9c8f78;
+      font-weight: 400;
+    }
+
+    .cell input:focus {
+      outline: 2px solid var(--marigold);
+      outline-offset: 2px;
+      border-bottom-color: var(--marigold);
+    }
+
+    .cell.hit {
+      background: #fbe4c8;
+      border-color: var(--marigold);
+    }
+
+    .cell.hit input {
+      border-bottom-color: var(--ink);
+      font-weight: 600;
+    }
+
+    .cell.free {
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      background: transparent;
+      border: none;
+    }
+
+    .free-badge {
+      width: 78px;
+      height: 78px;
+      border-radius: 50%;
+      background: var(--poppy);
+      color: var(--paper);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transform: rotate(-8deg);
+      box-shadow: 0 3px 0 var(--bg-dark);
+    }
+
+    .free-badge .star {
+      font-size: 1.1rem;
+      line-height: 1;
+    }
+
+    .free-badge .word {
+      font-family: 'Anton', sans-serif;
+      font-weight: 400;
+      font-size: 0.82rem;
+      letter-spacing: 0.5px;
+      margin-top: 2px;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 22px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      font-family: 'Work Sans', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 10px 18px;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+
+    #clearBtn {
+      background: var(--marigold);
+      border: 2px dashed var(--poppy);
+      color: var(--ink);
+    }
+
+    button:focus-visible {
+      outline: 2px solid var(--marigold);
+      outline-offset: 2px;
+    }
+
+    footer {
+      text-align: center;
+      color: #b9ad92;
+      font-size: 0.78rem;
+      margin-top: 18px;
+    }
+
+    #bingoBanner {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(21, 39, 32, 0.72);
+      z-index: 10;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+
+    #bingoBanner.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    #bingoBanner .box {
+      background: var(--paper);
+      border: 3px dashed var(--poppy);
+      border-radius: 6px;
+      padding: 28px 40px;
+      text-align: center;
+      transform: scale(0.85);
+      transition: transform 0.25s ease;
+    }
+
+    #bingoBanner.show .box {
+      transform: scale(1);
+    }
+
+    #bingoBanner h2 {
+      font-family: 'Anton', sans-serif;
+      font-weight: 400;
+      font-size: 2.6rem;
+      color: var(--poppy);
+      margin: 0 0 6px;
+    }
+
+    #bingoBanner p {
+      margin: 0 0 16px;
+      color: var(--ink);
+      font-size: 0.9rem;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+
+      #bingoBanner,
+      #bingoBanner .box {
+        transition: none;
+      }
+    }
+
+    @media (max-width:480px) {
+      .cell {
+        min-height: 82px;
+        padding: 5px 4px 6px;
+      }
+
+      .free-badge {
+        width: 60px;
+        height: 60px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="sheet">
+    <header>
+      <h1>Human Bingo</h1>
+      <p class="sub">Meet someone new for each square and write their name in the box. Get five in a row — across, down,
+        or diagonal — and you've got bingo.</p>
+    </header>
+
+    <div class="card">
+      <div class="grid" id="grid"></div>
+    </div>
+
+    <div class="controls">
+      <button id="clearBtn" type="button">Clear names</button>
+    </div>
+
+    <footer>Your card and names are saved automatically on this device.</footer>
+  </div>
+
+  <div id="bingoBanner" role="status" aria-live="polite">
+    <div class="box">
+      <h2>Bingo!</h2>
+      <p>Five in a row — nice work.</p>
+      <button id="dismissBtn" type="button">Keep playing</button>
+    </div>
+  </div>
+
+  <script>
+    // ---------------------------------------------------------------
+    // EDIT YOUR 24 QUESTIONS HERE. Keep exactly 24 — the 25th square
+    // (the center) is always the free space and is set below.
+    // ---------------------------------------------------------------
+    const PROMPTS = [
+      "Has a pet at home",
+      "Was born in a different city than you",
+      "Speaks more than two languages",
+      "Has the same favorite color as you",
+      "Has traveled outside the country this year",
+      "Is wearing something with a logo on it",
+      "Can name all their roommates",
+      "Has never used TikTok",
+      "Plays a musical instrument",
+      "Has met a minor celebrity",
+      "Is left-handed",
+      "Has a sibling whose name starts with the same letter as theirs",
+      "Knows how to solve a Rubik's cube",
+      "Has run a 5k or longer race",
+      "Grew up in more than one city",
+      "Has the same favorite season as you",
+      "Can whistle a tune",
+      "Has read a book in the last month",
+      "Has a hidden talent",
+      "Is a morning person",
+      "Has tried a food you've never heard of",
+      "Knows their MBTI type",
+      "Had a part-time job before turning 18",
+      "Wants to visit Japan someday"
+    ];
+
+    const FREE_INDEX = 12; // center of the 5x5 grid
+    const STORAGE_ANSWERS = "humanBingo.answers.v1";
+    const STORAGE_HITS = "humanBingo.hits.v1";
+
+    const LINES = [
+      [0, 1, 2, 3, 4], [5, 6, 7, 8, 9], [10, 11, 12, 13, 14], [15, 16, 17, 18, 19], [20, 21, 22, 23, 24],
+      [0, 5, 10, 15, 20], [1, 6, 11, 16, 21], [2, 7, 12, 17, 22], [3, 8, 13, 18, 23], [4, 9, 14, 19, 24],
+      [0, 6, 12, 18, 24], [4, 8, 12, 16, 20]
+    ];
+
+    const grid = document.getElementById("grid");
+    const banner = document.getElementById("bingoBanner");
+
+    const order = PROMPTS.slice(0, 24); // same order for every card
+    let answers = loadJSON(STORAGE_ANSWERS, {});
+    let hitLines = new Set(loadJSON(STORAGE_HITS, []));
+
+    function loadJSON(key, fallback) {
+      try {
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : fallback;
+      } catch (e) { return fallback; }
+    }
+
+    function saveJSON(key, value) {
+      try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) { }
+    }
+
+    function render() {
+      grid.innerHTML = "";
+      let promptCursor = 0;
+
+      for (let i = 0; i < 25; i++) {
+        const cell = document.createElement("div");
+        cell.className = "cell";
+        cell.dataset.index = i;
+
+        if (i === FREE_INDEX) {
+          cell.classList.add("free");
+          cell.innerHTML = `
+          <div class="free-badge">
+            <span class="star">&#9733;</span>
+            <span class="word">FREE</span>
+          </div>`;
+        } else {
+          const promptText = order[promptCursor];
+          promptCursor++;
+
+          const label = document.createElement("span");
+          label.className = "prompt";
+          label.textContent = promptText;
+
+          const input = document.createElement("input");
+          input.type = "text";
+          input.placeholder = "name…";
+          input.setAttribute("aria-label", promptText);
+          input.value = answers[i] || "";
+          input.addEventListener("input", () => {
+            answers[i] = input.value;
+            saveJSON(STORAGE_ANSWERS, answers);
+            checkBingo();
+          });
+
+          cell.appendChild(label);
+          cell.appendChild(input);
+        }
+
+        grid.appendChild(cell);
+      }
+
+      applyHitStyles();
+    }
+
+    function isFilled(i) {
+      if (i === FREE_INDEX) return true;
+      return Boolean((answers[i] || "").trim());
+    }
+
+    function applyHitStyles() {
+      const cells = grid.querySelectorAll(".cell");
+      cells.forEach(c => c.classList.remove("hit"));
+      hitLines.forEach(lineIndex => {
+        LINES[lineIndex].forEach(i => {
+          const cell = grid.querySelector(`.cell[data-index="${i}"]`);
+          if (cell) cell.classList.add("hit");
+        });
+      });
+    }
+
+    function checkBingo() {
+      let newHit = false;
+      LINES.forEach((line, idx) => {
+        if (hitLines.has(idx)) return;
+        if (line.every(isFilled)) {
+          hitLines.add(idx);
+          newHit = true;
+        }
+      });
+      if (newHit) {
+        saveJSON(STORAGE_HITS, Array.from(hitLines));
+        applyHitStyles();
+        showBanner();
+      }
+    }
+
+    function showBanner() {
+      banner.classList.add("show");
+    }
+
+    function hideBanner() {
+      banner.classList.remove("show");
+    }
+
+    document.getElementById("dismissBtn").addEventListener("click", hideBanner);
+
+    document.getElementById("clearBtn").addEventListener("click", () => {
+      if (!confirm("Clear all the names on this card? The question layout stays the same.")) return;
+      answers = {};
+      hitLines = new Set();
+      saveJSON(STORAGE_ANSWERS, answers);
+      saveJSON(STORAGE_HITS, []);
+      hideBanner();
+      render();
+    });
+
+    render();
+  </script>
+
+</body>
+
+</html>
